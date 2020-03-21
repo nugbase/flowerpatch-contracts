@@ -1,0 +1,45 @@
+{
+    "name": "flowerpatch-contracts",
+    "private": true,
+    "version": "1.0.0",
+    "description": "Nugbase / Flowerpatch core smart contracts",
+    "main": "truffle.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "compile-all": "truffle compile",
+        "compile-flower": "truffle compile contracts/flower/Flower.sol",
+        "compile-vending": "truffle compile contracts/vendingmachine/VendingMachine.sol",
+        "compile-breedfee": "truffle compile contracts/breedfee/BreedFee.sol",
+        "compile-seed": "truffle compile contracts/seed/SeedToken.sol",
+        "migrate-ganache": "truffle migrate --network ganache",
+        "migrate-rinkeby": "truffle migrate --network rinkeby",
+        "migrate-mainnet": "truffle migrate --network mainnet",
+        "test-all": "truffle test",
+        "test-flower": "truffle test ./test/flower/Flower.test.js",
+        "test-vending": "truffle test ./test/vendingmachine/VendingMachine.test.js",
+        "test-seed": "truffle test ./test/seed/SeedToken.test.js",
+        "test-breedfee": "truffle test ./test/breedfee/BreedFee.test.js",
+        "start-geth-rinkeby": "./scripts/geth-light-sync.sh"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/nugbase/flowerpatch-contracts.git"
+    },
+    "author": "",
+    "license": "UNLICENSED",
+    "bugs": {
+        "url": "https://github.com/nugbase/flowerpatch-contracts/issues"
+    },
+    "homepage": "https://github.com/nugbase/flowerpatch-contracts#readme",
+    "devDependencies": {
+        "truffle": "^4.1.14"
+    },
+    "dependencies": {
+        "chai": "^4.1.2",
+        "chai-bignumber": "^2.0.2",
+        "truffle-hdwallet-provider": "0.0.6",
+        "web3-provider-engine": "^14.1.0"
+    }
+}
