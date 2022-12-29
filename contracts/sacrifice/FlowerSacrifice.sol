@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract FlowerSacrifice {
     event Burnt(address indexed from, uint256[3] indexed flowers);
     IERC721 internal flowerContract;
+    address internal burnAddress = 0x000000000000000000000000000000000000dEaD;
 
     constructor(address _flowerContractAddress) {
         flowerContract = IERC721(_flowerContractAddress);
@@ -32,21 +33,13 @@ contract FlowerSacrifice {
 
         // Make sure this contract has approval to transfer all the FLOWERs
         require(
-            address(this) == flowerContract.getApproved(flower1),
-            "FlowerSacrifice: You must approve FLOWERs before sacrificing them."
-        );
-        require(
-            address(this) == flowerContract.getApproved(flower2),
-            "FlowerSacrifice: You must approve FLOWERs before sacrificing them."
-        );
-        require(
-            address(this) == flowerContract.getApproved(flower3),
+            flowerContract.isApprovedForAll(msg.sender, address(this)),
             "FlowerSacrifice: You must approve FLOWERs before sacrificing them."
         );
 
-        flowerContract.transferFrom(msg.sender, address(0), flower1);
-        flowerContract.transferFrom(msg.sender, address(0), flower2);
-        flowerContract.transferFrom(msg.sender, address(0), flower3);
+        flowerContract.transferFrom(msg.sender, burnAddress, flower1);
+        flowerContract.transferFrom(msg.sender, burnAddress, flower2);
+        flowerContract.transferFrom(msg.sender, burnAddress, flower3);
 
         uint256[3] memory flowers = [flower1, flower2, flower3];
 
