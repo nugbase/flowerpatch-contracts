@@ -1,6 +1,6 @@
 const FlowerSacrifice = artifacts.require('FlowerSacrifice.sol');
 const truffleAssert = require('truffle-assertions');
-const MockERC721 = artifacts.require('MockERC721.sol');
+const MockERC721Burnable = artifacts.require('MockERC721Burnable.sol');
 
 contract('FlowerSacrifice', function(accounts) {
     describe('all', function() {
@@ -10,8 +10,8 @@ contract('FlowerSacrifice', function(accounts) {
         let secondMockErc721;
 
         beforeEach(async function() {
-            mockErc721 = await MockERC721.new();
-            secondMockErc721 = await MockERC721.new();
+            mockErc721 = await MockERC721Burnable.new();
+            secondMockErc721 = await MockERC721Burnable.new();
             sacrifice = await FlowerSacrifice.new(mockErc721.address);
             web3Sacrifice = new web3.eth.Contract(
                 FlowerSacrifice.abi,
@@ -24,7 +24,10 @@ contract('FlowerSacrifice', function(accounts) {
         }
 
         it('MockErcERC721 Mock mint', async function() {
-            await mockErc721.mintForMe(123, { from: accounts[0] });
+            const r = await mockErc721.mintForMe(123, { from: accounts[0] });
+            console.log('>>>>>>', { r });
+            const owner = await mockErc721.ownerOf(123);
+            assert(owner === accounts[0], 'Owner is not equal to mintee');
         });
 
         it('MockErc721: approval and allowance', async function() {
@@ -127,27 +130,27 @@ contract('FlowerSacrifice', function(accounts) {
             await mockErc721.mintForMe(2, { from: accounts[0] });
             await mockErc721.mintForMe(3, { from: accounts[0] });
 
+            const oldBalance = await mockErc721.balanceOf(accounts[0]);
+            assert(
+                oldBalance == 3,
+                'Not enough NFTs in mintee. Expected 3, got: ' + oldBalance
+            );
+
+            const oldOwner1 = await mockErc721.ownerOf(1);
+            const oldOwner2 = await mockErc721.ownerOf(2);
+            const oldOwner3 = await mockErc721.ownerOf(3);
+            assert(oldOwner1 === accounts[0], 'NFTs failed to mint');
+            assert(oldOwner2 === accounts[0], 'NFTs failed to mint');
+            assert(oldOwner3 === accounts[0], 'NFTs failed to mint');
+
             await mockErc721.setApprovalForAll(sacrifice.address, true, {
                 from: accounts[0],
             });
 
-            await burn(accounts[0], 1, 2, 3);
+            const response = await burn(accounts[0], 1, 2, 3);
 
-            const newOwner1 = await mockErc721.ownerOf(1);
-            assert(
-                newOwner1 === '0x000000000000000000000000000000000000dEaD',
-                'NFTs were not sent to burn address'
-            );
-            const newOwner2 = await mockErc721.ownerOf(2);
-            assert(
-                newOwner2 === '0x000000000000000000000000000000000000dEaD',
-                'NFTs were not sent to burn address'
-            );
-            const newOwner3 = await mockErc721.ownerOf(3);
-            assert(
-                newOwner3 === '0x000000000000000000000000000000000000dEaD',
-                'NFTs were not sent to burn address'
-            );
+            const updatedBalance = await mockErc721.balanceOf(accounts[0]);
+            assert(updatedBalance == 0, 'Mintee has nonzero balance.');
         });
 
         it('FlowerSacrifice: make sure other nfts dont get burned', async function() {

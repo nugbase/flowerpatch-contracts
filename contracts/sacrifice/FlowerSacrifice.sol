@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 
 contract FlowerSacrifice {
     event Burnt(address indexed from, uint256[3] indexed flowers);
-    IERC721 internal flowerContract;
+    ERC721Burnable internal flowerContract;
     address internal burnAddress = 0x000000000000000000000000000000000000dEaD;
 
     constructor(address _flowerContractAddress) {
-        flowerContract = IERC721(_flowerContractAddress);
+        flowerContract = ERC721Burnable(_flowerContractAddress);
     }
 
     function burn(
@@ -37,9 +37,9 @@ contract FlowerSacrifice {
             "FlowerSacrifice: You must approve FLOWERs before sacrificing them."
         );
 
-        flowerContract.transferFrom(msg.sender, burnAddress, flower1);
-        flowerContract.transferFrom(msg.sender, burnAddress, flower2);
-        flowerContract.transferFrom(msg.sender, burnAddress, flower3);
+        flowerContract.burn(flower1);
+        flowerContract.burn(flower2);
+        flowerContract.burn(flower3);
 
         uint256[3] memory flowers = [flower1, flower2, flower3];
 
