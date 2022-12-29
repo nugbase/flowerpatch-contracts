@@ -20,12 +20,13 @@ contract('FlowerSacrifice', function(accounts) {
         });
 
         async function burn(transactionSender, id1, id2, id3) {
-            await sacrifice.burn(id1, id2, id3, { from: transactionSender });
+            return await sacrifice.burn('sacrificial-altar', id1, id2, id3, {
+                from: transactionSender,
+            });
         }
 
         it('MockErcERC721 Mock mint', async function() {
             const r = await mockErc721.mintForMe(123, { from: accounts[0] });
-            console.log('>>>>>>', { r });
             const owner = await mockErc721.ownerOf(123);
             assert(owner === accounts[0], 'Owner is not equal to mintee');
         });

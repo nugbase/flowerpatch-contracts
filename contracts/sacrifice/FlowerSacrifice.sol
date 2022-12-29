@@ -4,7 +4,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 
 contract FlowerSacrifice {
-    event Burnt(address indexed from, uint256[3] indexed flowers);
+    event Burnt(
+        string indexed eventId,
+        address indexed from,
+        uint256[3] indexed flowers
+    );
     ERC721Burnable internal flowerContract;
     address internal burnAddress = 0x000000000000000000000000000000000000dEaD;
 
@@ -13,6 +17,7 @@ contract FlowerSacrifice {
     }
 
     function burn(
+        string memory eventId,
         uint256 flower1,
         uint256 flower2,
         uint256 flower3
@@ -43,6 +48,6 @@ contract FlowerSacrifice {
 
         uint256[3] memory flowers = [flower1, flower2, flower3];
 
-        emit Burnt(msg.sender, flowers);
+        emit Burnt(eventId, msg.sender, flowers);
     }
 }
