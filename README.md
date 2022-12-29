@@ -34,3 +34,14 @@ Honestly, you probably shouldn't bother, since we can use Infura automatically.
 ## How Do I Compile, Migrate Contracts to Networks, And Run Tests?
 
 Just use the scripts provided via `npm run` / `package.json` ... ya dummy
+
+## Random commands that may be helpful
+
+I tried running truffle with `node v19.2.0` and it failed badly. I recommend using `v14.17.3`.
+`nvm use v11.6.0`
+Make sure you have the `/secrets` folder and you `source` them before running anything with this script:
+`source ./scripts/source-me.sh`
+Keep in mind `truffle migrate` is the same as `truffle deploy`. To run a specific deployment script (in `/migrations/`), use the `--f <number>` (from) and `--to <number>` tags. Example:
+`npx truffle migrate --network polygon --f 4 --to 4`
+This repo contains many contracts using many different versions of the Solidity compiler. By default, truffle tries to compile ALL the contracts in the `/contracts/` folder before deploying anything. This results in a `Source file requires different compiler version` error when running truffle. Thus, if you're writing a new contract with a newer compiler version and want to deploy it, you may want to isolate the `contracts_directory` variable in the `/truffle.js` file:
+`contracts_directory: './contracts/sacrifice',`
