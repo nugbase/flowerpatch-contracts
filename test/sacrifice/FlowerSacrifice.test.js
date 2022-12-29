@@ -171,12 +171,12 @@ contract('FlowerSacrifice', function(accounts) {
             const newOwner2 = await secondMockErc721.ownerOf(2);
             assert(
                 newOwner2 === accounts[0],
-                'NFTs from another contract were burned!'
+                'NFTs were not sent to burn address'
             );
             const newOwner3 = await secondMockErc721.ownerOf(3);
             assert(
                 newOwner3 === accounts[0],
-                'NFTs from another contract were burned!'
+                'NFTs were not sent to burn address'
             );
         });
     });
