@@ -7,9 +7,11 @@ contract('FlowerSacrifice', function(accounts) {
         let sacrifice;
         let web3Sacrifice;
         let mockErc721;
+        let secondMockErc721;
 
         beforeEach(async function() {
             mockErc721 = await MockERC721.new();
+            secondMockErc721 = await MockERC721.new();
             sacrifice = await FlowerSacrifice.new(mockErc721.address);
             web3Sacrifice = new web3.eth.Contract(
                 FlowerSacrifice.abi,
@@ -144,6 +146,36 @@ contract('FlowerSacrifice', function(accounts) {
             const newOwner3 = await mockErc721.ownerOf(3);
             assert(
                 newOwner3 === '0x000000000000000000000000000000000000dEaD',
+                'NFTs were not sent to burn address'
+            );
+        });
+
+        it('FlowerSacrifice: make sure other nfts dont get burned', async function() {
+            await mockErc721.mintForMe(1, { from: accounts[0] });
+            await mockErc721.mintForMe(2, { from: accounts[0] });
+            await mockErc721.mintForMe(3, { from: accounts[0] });
+
+            await secondMockErc721.mintForMe(1, { from: accounts[0] });
+            await secondMockErc721.mintForMe(2, { from: accounts[0] });
+            await secondMockErc721.mintForMe(3, { from: accounts[0] });
+
+            await mockErc721.setApprovalForAll(sacrifice.address, true, {
+                from: accounts[0],
+            });
+
+            const newOwner1 = await secondMockErc721.ownerOf(1);
+            assert(
+                newOwner1 === accounts[0],
+                'NFTs from another contract were burned!'
+            );
+            const newOwner2 = await secondMockErc721.ownerOf(2);
+            assert(
+                newOwner2 === accounts[0],
+                'NFTs were not sent to burn address'
+            );
+            const newOwner3 = await secondMockErc721.ownerOf(3);
+            assert(
+                newOwner3 === accounts[0],
                 'NFTs were not sent to burn address'
             );
         });
