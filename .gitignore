@@ -1,0 +1,9 @@
+# private keys
+/secret/
+secret
+
+# Dependency directories
+node_modules
+
+# Misc
+.DS_Store
