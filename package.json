@@ -16,6 +16,7 @@
         "migrate-ganache": "truffle migrate --network ganache",
         "migrate-rinkeby": "truffle migrate --network rinkeby",
         "migrate-mainnet": "truffle migrate --network mainnet",
+        "migrate-polygon": "truffle migrate --network polygon --f 4",
         "test-all": "truffle test",
         "test-flower": "truffle test ./test/flower/Flower.test.js",
         "test-vending": "truffle test ./test/vendingmachine/VendingMachine.test.js",
@@ -34,12 +35,21 @@
     },
     "homepage": "https://github.com/nugbase/flowerpatch-contracts#readme",
     "devDependencies": {
-        "truffle": "^4.1.14"
+        "chai": "^4.3.4",
+        "chai-bn": "^0.2.1",
+        "prettier": "1.19.1",
+        "prettier-eslint": "13.0.0",
+        "truffle": "^5.3.0"
     },
     "dependencies": {
+        "@openzeppelin/contracts": "^4.4.1",
+        "@truffle/hdwallet-provider": "^1.4.0",
         "chai": "^4.1.2",
         "chai-bignumber": "^2.0.2",
-        "truffle-hdwallet-provider": "0.0.6",
+        "command-exists": "^1.2.9",
+        "ethereumjs-util": "^7.1.5",
+        "truffle-assertions": "^0.9.2",
+        "truffle-flattener": "^1.5.0",
         "web3-provider-engine": "^14.1.0"
     }
 }
