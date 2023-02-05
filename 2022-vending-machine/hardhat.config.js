@@ -8,7 +8,7 @@ const privateKey = fs.readFileSync(".secret").toString().trim();
 const myApiKey = fs.readFileSync(".apiKey").toString().trim();
 
 const config = {
-  defaultNetwork: "matic",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
     },
@@ -35,7 +35,7 @@ const config = {
     runOnCompile: false,
   },
   etherscan: {
-    apiKey: myApiKey
+    apiKey: "XB9AAKUPSIP4M6GVE7B6MJ3USJGRR42MGE"
   }
 };
 

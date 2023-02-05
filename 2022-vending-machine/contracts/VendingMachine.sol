@@ -39,6 +39,7 @@ contract VendingMachine is
         bytes varData
     );
 
+
     struct InventoryEntry {
         uint256 index;
         uint256 seedPrice;
@@ -49,19 +50,19 @@ contract VendingMachine is
 
     // Constants
     uint32 public constant UINT32_MAX = ~uint32(0);
+    // item types 
 
+    uint32 public constant ITEMTYPE_FLOWER = 0;
+    uint32 public constant ITEMTYPE_ITEM = 1;
     // Privileges
     bytes32 public constant PRIV_MANAGE = keccak256("PRIV_MANAGE");
     bytes32 public constant PRIV_WITHDRAW = keccak256("PRIV_WITHDRAW");
 
     mapping(uint256 => InventoryEntry) public inventoryEntries;
     uint256[] public itemIds;
-    uint256 public nugbaseFeeEth = 0.0024 ether;
-    uint256 public breedeeFeeEth = 0.0006 ether;
-    uint256 public burnedSeed = 4200;
-    uint256 public breedeeFeeSeed = 1200;
-    uint256 public daoSeed = 600;
-    address public daoAddress = 0xE633600057703A63061B0db9D3B747Eb4b608f56;
+
+    uint256 public nugbaseFeeEth = 5.5 ether; 
+    uint256 public breedeeFeeEth = 1.5 ether;
 
     ERC20 internal seedContract =
         ERC20(0xA3c342c1630BE4a779d0896925787EFFad0569cB);
@@ -79,12 +80,13 @@ contract VendingMachine is
         bytes calldata _varData
     ) external {
         InventoryEntry storage inventoryEntry = inventoryEntries[_itemId];
-        require(_inventoryEntryExists(inventoryEntry));
-        require(inventoryEntry.seedPrice != 0);
-        require(_value == inventoryEntry.seedPrice);
-        require(seedContract.transferFrom(msgSender(), address(this), _value));
+        require(_inventoryEntryExists(inventoryEntry),"Inventory item does not exist");
+        require(inventoryEntry.seedPrice != 0, "Item cannot have zero price");
+        require(_value == inventoryEntry.seedPrice, "Incorrect payment amount");
+        require(seedContract.transferFrom(msgSender(), address(this), _value), "Seed contract must approve Vending machine as spender");
         uint32 _itemType = inventoryEntry.itemType; // value saved before entry is deleted
         _deductInventoryItem(inventoryEntry, _itemId);
+
         emit SeedPurchase(msgSender(), _itemId, _value, _itemType, _varData);
     }
 
@@ -93,9 +95,9 @@ contract VendingMachine is
         payable
     {
         InventoryEntry storage inventoryEntry = inventoryEntries[_itemId];
-        require(_inventoryEntryExists(inventoryEntry));
-        require(inventoryEntry.ethPrice != 0);
-        require(msg.value == inventoryEntry.ethPrice);
+        require(_inventoryEntryExists(inventoryEntry),"Inventory item does not exist");
+        require(inventoryEntry.ethPrice != 0, "Item cannot have zero price");
+        require(msg.value == inventoryEntry.ethPrice, "Incorrect payment amount");
         uint32 _itemType = inventoryEntry.itemType; // value saved before entry is deleted
         _deductInventoryItem(inventoryEntry, _itemId);
         emit EtherPurchase(
@@ -114,7 +116,9 @@ contract VendingMachine is
         uint32 quantity,
         uint32 itemType
     ) external onlyRole(PRIV_MANAGE) {
-        require(quantity > 0);
+        require(quantity > 0, "Quantity must be greater than zero");
+        require(itemType == ITEMTYPE_FLOWER || itemType == ITEMTYPE_ITEM, "Must be defined item type: 0 is FLOWER, 1 is ITEM");
+        require(seedPrice > 0 || ethPrice > 0, "Eth price or Seed price must be greater than zero");
         InventoryEntry storage inventoryEntry = inventoryEntries[_itemId];
         if (!_inventoryEntryExists(inventoryEntry)) {
             // New item
@@ -161,14 +165,17 @@ contract VendingMachine is
 
     function _deleteInventoryItem(uint256 _itemId) internal {
         InventoryEntry storage inventoryEntry = inventoryEntries[_itemId];
-        if (!_inventoryEntryExists(inventoryEntry)) {
-            return;
-        }
+
+        require(_inventoryEntryExists(inventoryEntry), "Inventory entry does not exist");
         uint256 lastItemIndex = itemIds.length - 1; // Safe because at least one item must exist (asserted above)
-        uint256 lastItemId = itemIds[lastItemIndex];
-        itemIds[inventoryEntry.index] = itemIds[lastItemIndex];
-        inventoryEntries[lastItemId].index = inventoryEntry.index;
+        uint256 lastItemId = itemIds[lastItemIndex]; // get the item ID for the last item.
+
+        itemIds[inventoryEntry.index] = itemIds[lastItemIndex]; // move the last array item into the index we are trying to remove and overwrite it.
+
+        inventoryEntries[lastItemId].index = inventoryEntry.index; // set the index of the lastItemID to the index of the item we are deleting since we just coppied the itemID to that position in the itemIds array
+        // now delete the inventoryEntry and remove the last item in the array to reduce its length
         delete inventoryEntries[_itemId];
+        itemIds.pop();
     }
 
     function _inventoryEntryExists(InventoryEntry storage inventoryEntry)
@@ -176,60 +183,22 @@ contract VendingMachine is
         view
         returns (bool)
     {
-        return inventoryEntry.quantity != 0;
+        if (inventoryEntry.quantity != 0) return true;
+        if (inventoryEntry.seedPrice != 0) return true;
+        if (inventoryEntry.ethPrice != 0) return true;
+        return false;
     }
 
     function breedEth(address payable _breedee, bytes calldata _varData)
         external
         payable
     {
-        require(msg.value == nugbaseFeeEth + breedeeFeeEth, "Not enough ETH");
+        require(msg.value == (nugbaseFeeEth + breedeeFeeEth), "Not enough ETH");
         _breedee.transfer(breedeeFeeEth);
         emit BreedEth(
             msg.sender,
             _breedee,
-            nugbaseFeeEth + breedeeFeeEth,
-            _varData
-        );
-    }
-
-    function breedSeed(address _breedee, bytes calldata _varData) external {
-        // ensure user has enough SEED to breed and has permitted the
-        // VendingMachine to spend their SEED
-        require(
-            seedContract.allowance(msgSender(), address(this)) >=
-                (burnedSeed + breedeeFeeSeed + daoSeed),
-            "Allowance not set"
-        );
-        if (msgSender() != _breedee) {
-            // Breed with other
-            require(
-                seedContract.balanceOf(msgSender()) >=
-                    (burnedSeed + breedeeFeeSeed + daoSeed),
-                "Not enough SEED"
-            );
-            require(
-                seedContract.transferFrom(msgSender(), _breedee, breedeeFeeSeed)
-            );
-        } else {
-            // Self breed discount applied
-            require(
-                seedContract.balanceOf(msgSender()) >= (burnedSeed + daoSeed),
-                "Not enough SEED"
-            );
-        }
-        // Burn SEED
-        require(
-            seedContract.transferFrom(msgSender(), address(this), burnedSeed)
-        );
-        seedContract.burn(burnedSeed);
-        // Send SEED to DAO
-        require(seedContract.transferFrom(msgSender(), daoAddress, daoSeed));
-
-        emit BreedSeed(
-            msgSender(),
-            _breedee,
-            burnedSeed + breedeeFeeSeed + daoSeed,
+            (nugbaseFeeEth + breedeeFeeEth),
             _varData
         );
     }
@@ -240,22 +209,6 @@ contract VendingMachine is
 
     function setNugbaseFeeEth(uint256 _fee) external onlyRole(PRIV_MANAGE) {
         nugbaseFeeEth = _fee;
-    }
-
-    function setBreedeeFeeSeed(uint256 _fee) external onlyRole(PRIV_MANAGE) {
-        breedeeFeeSeed = _fee;
-    }
-
-    function setBurnedSeed(uint256 _fee) external onlyRole(PRIV_MANAGE) {
-        burnedSeed = _fee;
-    }
-
-    function setDaoSeed(uint256 _fee) external onlyRole(PRIV_MANAGE) {
-        daoSeed = _fee;
-    }
-
-    function setDaoAddress(address _dao) external onlyRole(PRIV_MANAGE) {
-        daoAddress = _dao;
     }
 
     function setSeedToken(address _seed) external onlyRole(PRIV_MANAGE) {
