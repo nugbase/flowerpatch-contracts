@@ -28,7 +28,7 @@
     "hardhat": "^2.12.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.0",
+    "@openzeppelin/contracts": "^4.8.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.0",
     "web3": "^1.8.0"
   }
